@@ -545,7 +545,7 @@ class Menu(metaclass=_MenuMeta):
         """
         if payload.message_id != self.message.id:
             return False
-        if payload.user_id not in {self.bot.owner_id, self._author_id, *self.bot.owner_ids}:
+        if payload.user_id not in {self.bot.owner_id, self._author_id, *self.bot.owner_ids, *self._allowed_user_ids}:
             return False
 
         return payload.emoji in self.buttons
@@ -662,7 +662,7 @@ class Menu(metaclass=_MenuMeta):
         # which would require awaiting, such as stopping an erroring menu.
         log.exception("Unhandled exception during menu update.", exc_info=exc)
 
-    async def start(self, ctx, *, channel=None, wait=False):
+    async def start(self, ctx, *, channel=None, wait=False, allowed_user_ids=None):
         """|coro|
 
         Starts the interactive menu session.
@@ -691,6 +691,11 @@ class Menu(metaclass=_MenuMeta):
             del self.buttons
         except AttributeError:
             pass
+
+        if allowed_user_ids is None:
+            self._allowed_user_ids = set()
+        else:
+            self._allowed_user_ids = set(allowed_user_ids)
 
         self.bot = bot = ctx.bot
         self.ctx = ctx
